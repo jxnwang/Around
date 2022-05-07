@@ -1,7 +1,14 @@
 package main
 
-import "fmt"
+import (
+	"fmt"
+	"log"
+	"net/http"
+
+	"around/handler"
+)
 
 func main() {
-	fmt.Println("hello world")
+	fmt.Println("started-service")
+	log.Fatal(http.ListenAndServe(":8080", handler.InitRouter()))
 }
