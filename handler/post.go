@@ -4,30 +4,79 @@ import (
 	"encoding/json" //similar to jackson
 	"fmt"           //format, like print
 	"net/http"
+	"path/filepath"
 
 	"around/model"
 	"around/service"
+
+	"github.com/pborman/uuid"
+)
+
+var (
+	mediaTypes = map[string]string{
+		".jpeg": "image",
+		".jpg":  "image",
+		".gif":  "image",
+		".png":  "image",
+		".mov":  "video",
+		".mp4":  "video",
+		".avi":  "video",
+		".flv":  "video",
+		".wmv":  "video",
+	}
 )
 
 func uploadHandler(w http.ResponseWriter, r *http.Request) {
+	fmt.Println("Received one upload request")
+
+	p := model.Post{
+		Id:      uuid.New(), //creaqte a unique id
+		User:    r.FormValue("user"),
+		Message: r.FormValue("message"),
+	}
+
+	file, header, err := r.FormFile("media_file")
+	//second return is metadata
+	if err != nil {
+		http.Error(w, "Media file is not available", http.StatusBadRequest)
+		fmt.Printf("Media file is not available %v\n", err)
+		return
+	}
+
+	suffix := filepath.Ext(header.Filename) //.mp4, .jpg ...
+	if t, ok := mediaTypes[suffix]; ok {
+		p.Type = t
+	} else {
+		p.Type = "unknown"
+	}
+
+	err = service.SavePost(&p, file)
+	if err != nil {
+		http.Error(w, "Failed to save post to backend", http.StatusInternalServerError)
+		fmt.Printf("Failed to save post to backend %v\n", err)
+		return
+	}
+
+	fmt.Println("Post is saved successfully.")
+
 	// Parse from body of request to get a json object.
 	// the pointer, or the input object will be copied and the original object can't be modified
 	// why to change resuest, but not response?
 	// - request pointer is space saving. you are not going to change the request, just to save space
 	// responseWriter is an interface, not a class. There is no pointer to interfaces
-	fmt.Println("Received one post request")
-	decoder := json.NewDecoder(r.Body)
+	//	fmt.Println("Received one post request")
+	//	decoder := json.NewDecoder(r.Body)
 	// here you must know request body is json
-	var p model.Post
-	if err := decoder.Decode(&p); err != nil {
-		//json is decoded to struct p
-		panic(err)
-		//panic = throw a runtime exception
-		//everything crash and then restart.
-		//normally you don't do this.
-	}
+	//	var p model.Post
+	//	if err := decoder.Decode(&p); err != nil {
+	//json is decoded to struct p
+	//		panic(err)
+	//panic = throw a runtime exception
+	//everything crash and then restart.
+	//normally you don't do this.
+	//	}
 
-	fmt.Fprintf(w, "Post received: %s\n", p.Message)
+	//	fmt.Fprintf(w, "Post received: %s\n", p.Message)
 	//print these to w
 	//writer is like a buffer. print to writer first, and writer write to response.
 	//writer will judge if the string is too long for response or something else.

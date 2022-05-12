@@ -44,10 +44,12 @@ func (backend *GoogleCloudStorageBackend) SaveToGCS(r io.Reader, objectName stri
 	}
 
 	if err := object.ACL().Set(ctx, storage.AllUsers, storage.RoleReader); err != nil {
+		//ACL: access control list
+		//set the read access to all. If not this is by default private.
 		return "", err
 	}
 
-	attrs, err := object.Attrs(ctx)
+	attrs, err := object.Attrs(ctx) //attributes
 	if err != nil {
 		return "", err
 	}
