@@ -62,3 +62,11 @@ func SavePost(post *model.Post, file multipart.File) error {
     //if we do rollback, service is slowed down.
     //a good way: create a offline service that only runs once in a while to handle this.
 }
+
+func DeletePost(id string, user string) error {
+    query := elastic.NewBoolQuery()
+    query.Must(elastic.NewTermQuery("id", id))
+    query.Must(elastic.NewTermQuery("user", user))
+
+    return backend.ESBackend.DeleteFromES(query, constants.POST_INDEX)
+}

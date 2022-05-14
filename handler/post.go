@@ -11,6 +11,7 @@ import (
 
 	jwt "github.com/form3tech-oss/jwt-go"
 	"github.com/pborman/uuid"
+	"github.com/gorilla/mux" 
 )
 
 var (
@@ -123,4 +124,20 @@ func searchHandler(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 	w.Write(js)
+}
+
+func deleteHandler(w http.ResponseWriter, r *http.Request) {
+    fmt.Println("Received one request for delete")
+
+    user := r.Context().Value("user")
+    claims := user.(*jwt.Token).Claims
+    username := claims.(jwt.MapClaims)["username"].(string)
+    id := mux.Vars(r)["id"]
+
+    if err := service.DeletePost(id, username); err != nil {
+        http.Error(w, "Failed to delete post from backend", http.StatusInternalServerError)
+        fmt.Printf("Failed to delete post from backend %v\n", err)
+        return
+    }
+    fmt.Println("Post is deleted successfully")
 }
