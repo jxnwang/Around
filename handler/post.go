@@ -9,6 +9,7 @@ import (
 	"around/model"
 	"around/service"
 
+	jwt "github.com/form3tech-oss/jwt-go"
 	"github.com/pborman/uuid"
 )
 
@@ -29,9 +30,14 @@ var (
 func uploadHandler(w http.ResponseWriter, r *http.Request) {
 	fmt.Println("Received one upload request")
 
+	token := r.Context().Value("user")
+	claims := token.(*jwt.Token).Claims
+	username := claims.(jwt.MapClaims)["username"]
+
 	p := model.Post{
-		Id:      uuid.New(), //creaqte a unique id
-		User:    r.FormValue("user"),
+		Id:   uuid.New(), //creaqte a unique id
+		User: username.(string),
+		//user identity should be from the token, not given by http request as message.
 		Message: r.FormValue("message"),
 	}
 
