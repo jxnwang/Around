@@ -14,8 +14,6 @@ import (
 	//if you want to use method from this library, jwt.xxx()
 )
 
-var mySigningKey = []byte("secret123456")
-
 //secret key
 
 func signinHandler(w http.ResponseWriter, r *http.Request) {
